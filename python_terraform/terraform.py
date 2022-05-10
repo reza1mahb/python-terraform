@@ -143,7 +143,7 @@ class Terraform:
     def destroy(
         self,
         dir_or_plan: Optional[str] = None,
-        force: Type[TerraformFlag] = IsFlagged,
+        force: Type[TerraformFlag] = IsNotFlagged,
         **kwargs,
     ) -> CommandOutput:
         """Refer to https://www.terraform.io/docs/commands/destroy.html
@@ -301,7 +301,7 @@ class Terraform:
                 if there's a dash in the option name, use under line instead of dash,
                     ex. -no-color --> no_color
                 if it's a simple flag with no value, value should be IsFlagged
-                    ex. cmd('taint', allow＿missing=IsFlagged)
+                    ex. cmd('taint', allow_missing=IsFlagged)
                 if it's a boolean value flag, assign True or false
                 if it's a flag could be used multiple times, assign list to it's value
                 if it's a "var" variable flag, assign dictionary to it
@@ -329,7 +329,7 @@ class Terraform:
             stdout = sys.stdout
 
         cmds = self.generate_cmd_string(cmd, *args, **kwargs)
-        logger.info("Command: %s", " ".join(cmds))
+        logger.debug("Command: %s", " ".join(cmds))
 
         working_folder = self.working_dir if self.working_dir else None
 
@@ -346,23 +346,23 @@ class Terraform:
 
         out, err = p.communicate()
         ret_code = p.returncode
-        logger.info("output: %s", out)
 
         if ret_code == 0:
             self.read_state_file()
-        else:
-            logger.warning("error: %s", err)
+        elif err is not None:
+            logger.error("error: %s", err)
 
         self.temp_var_files.clean_up()
+
         if capture_output is True:
             out = out.decode()
             err = err.decode()
         else:
-            out = None
-            err = None
+            err = out = None
 
-        if ret_code and raise_on_error:
-            raise TerraformCommandError(ret_code, " ".join(cmds), out=out, err=err)
+        if ret_code > 0 and raise_on_error:
+            raise TerraformCommandError(
+                ret_code, " ".join(cmds), out=out, err=err)
 
         return ret_code, out, err
 
@@ -414,7 +414,8 @@ class Terraform:
         file_path = file_path or self.state or ""
 
         if not file_path:
-            backend_path = os.path.join(file_path, ".terraform", "terraform.tfstate")
+            backend_path = os.path.join(
+                file_path, ".terraform", "terraform.tfstate")
 
             if os.path.exists(os.path.join(working_dir, backend_path)):
                 file_path = backend_path

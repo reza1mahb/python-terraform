@@ -21,11 +21,11 @@ except IOError:
 
 setup(
     name=module_name,
-    version="0.14.0",
-    url="https://github.com/beelit94/python-terraform",
+    version="0.14.2",
+    url="https://github.com/starkware-libs/python-terraform.git",
     license="MIT",
-    author="Freddy Tan",
-    author_email="beelit94@gmail.com",
+    author="Devops",
+    author_email="devops@starkware.co",
     description=short_description,
     long_description=long_description,
     packages=["python_terraform"],
