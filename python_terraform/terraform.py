@@ -118,7 +118,6 @@ class Terraform:
         default = kwargs.copy()
         default["input"] = input
         default["no_color"] = no_color
-        default["auto-approve"] = True  # a False value will require an input
         option_dict = self._generate_default_options(default)
         args = self._generate_default_args(dir_or_plan)
         return self.cmd("apply", *args, **option_dict)
